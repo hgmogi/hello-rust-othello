@@ -6,6 +6,8 @@ use crossterm::{
     event::{self, Event, KeyCode},
 };
 
+const WHITE_STONE: char = '◌';
+const BLACK_STONE: char = '●';
 
 fn clear_and_print(message: &String) {
     let mut out = stdout();
@@ -20,10 +22,10 @@ fn generate_board_string(board: &Vec<Vec<Option<char>>>, cursor: (usize, usize))
     for (row_i, row) in board.iter().enumerate() {
         for (col_i, cell) in row.iter().enumerate() {
             let symbol = match cell {
-                Some('B') => "B",
-                Some('W') => "W",
-                None => ".",
-                _ => "?",
+                Some(BLACK_STONE) => BLACK_STONE,
+                Some(WHITE_STONE) => WHITE_STONE,
+                None => '.',
+                _ => '?',
             };
 
             if (row_i, col_i) == cursor {
@@ -53,7 +55,7 @@ fn flip_stones(
     cursor: (usize, usize),
     player_color: char
 ) {
-    let opponent = if player_color == 'B' { 'W' } else { 'B' };
+    let opponent = if player_color == BLACK_STONE { WHITE_STONE } else { BLACK_STONE };
 
     let directions = [
         (-1, 0), (1, 0),
@@ -94,11 +96,11 @@ fn set_stone(cursor: (usize, usize), board: &mut Vec<Vec<Option<char>>>, turn_bl
     let (row, col) = cursor;
     if board[row][col].is_none() {
         if *turn_black {
-            board[row][col] = Some('B');
+            board[row][col] = Some(BLACK_STONE);
         } else {
-            board[row][col] = Some('W');
+            board[row][col] = Some(WHITE_STONE);
         }
-        let player_color = if *turn_black { 'B' } else { 'W' };
+        let player_color = if *turn_black { BLACK_STONE } else { WHITE_STONE };
         flip_stones(board, cursor, player_color);
         *turn_black = !*turn_black;
     }
@@ -110,10 +112,10 @@ fn main() {
     enable_raw_mode().unwrap();
     let mut board: Vec<Vec<Option<char>>> = vec![vec![None; 8]; 8];
 
-    board[3][3] = Some('W');
-    board[3][4] = Some('B');
-    board[4][3] = Some('B');
-    board[4][4] = Some('W');
+    board[3][3] = Some(WHITE_STONE);
+    board[3][4] = Some(BLACK_STONE);
+    board[4][3] = Some(BLACK_STONE);
+    board[4][4] = Some(WHITE_STONE);
 
     let mut cursor: (usize, usize) = (4,4);
     
@@ -128,10 +130,10 @@ fn main() {
 
         if let Event::Key(key_event) = event::read().unwrap() {
             match key_event.code {
-                KeyCode::Char('i') => cursor = move_cursor(cursor, "up"),
-                KeyCode::Char('k') => cursor = move_cursor(cursor, "down"),
-                KeyCode::Char('j') => cursor = move_cursor(cursor, "left"),
-                KeyCode::Char('l') => cursor = move_cursor(cursor, "right"),
+                KeyCode::Up => cursor = move_cursor(cursor, "up"),
+                KeyCode::Down => cursor = move_cursor(cursor, "down"),
+                KeyCode::Left => cursor = move_cursor(cursor, "left"),
+                KeyCode::Right => cursor = move_cursor(cursor, "right"),
                 KeyCode::Enter => set_stone(cursor, &mut board, &mut turn_black),
                 KeyCode::Char('q') => break, // qで終了
                 _ => {}
